@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+    <script>
+        const checkEnter = (event, functionToCall) => {
+            if(event.key === 'Enter')
+                functionToCall()
+        }
+        const redirectToRegister = () => {
+            window.location.href = '/register'
+        }
+    </script>
+
+    <div id = 'inputFields' style = 'white-space: pre-line;'>
+        Username: 
+        <input type = 'text' id = 'usernameField' onkeydown= "checkEnter(event, try_login)">
+        Password:
+        <input type = 'password' id = 'passwordField' onkeydown= "checkEnter(event, try_login)">
+        <script src = 'try_login.js'></script>
+        <button onclick = "try_login()">Login</button>
+
+        Dont have an account?
+        <button onclick = 'redirectToRegister()'>Create account.</button>
+    </div>
+    
+    
+    <div id = 'resultOutput' style = 'margin-top: 30px;'>
+        
+
+    </div>
+
+</body>
+</html>

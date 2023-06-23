@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Image Upload</h1>
+    <div id="uploadDiv">
+        <script src="send_image.js"></script>
+        <input type="file" name="image" id="imageInput" required>
+        <button id="uploadButton" onclick="send_image()">Upload</button>
+    </div>
+
+    <div style = 'margin-top: 50px;'>
+        <script src = 'request_image.js'></script> 
+        <button onclick = 'request_image()'>see</button>
+    </div>
+
+    
+    <div id = 'sex' style = 'margin-top: 50px;'>
+        Image:  
+    </div>
+    <div id="message"></div>
+
+</body>
+</html>
