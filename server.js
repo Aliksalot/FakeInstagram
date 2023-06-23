@@ -140,7 +140,7 @@ app.post('/new_post', upload.single('image'), (req, res) => {
     res.send()
     
 })
-
+/*
 app.post('/load_image', (req, res) => {
     const imagePromise = db.get_image()
     imagePromise.then(img => {
@@ -151,13 +151,20 @@ app.post('/load_image', (req, res) => {
         res.send(img.src)
     })
 })
-
-app.post('/upload_image', upload.single('image'), (req, res) => {
-    const img_src = req.file.filename
-    db.upload_image({src : img_src})
-    res.send("success")
-})
-
+*/
+/*
+app.post('/load_pfp', (req,res) => {
+    try{
+        const pfp_src = req.body.src
+        app.get('/' + src, (req,res) => {
+            const filePath = path.join(__dirname, `./uploads/${pfp_src}`)
+            res.sendFile(filePath)
+        })
+        res.send()
+    }catch(e){
+        console.log('error when loading pfp')
+    }
+})*/
 app.post('/new_bio', (req, res) => { 
     try{
         const bio = req.body.bio
@@ -171,6 +178,11 @@ app.post('/new_bio', (req, res) => {
     res.send()
 })
 
+app.get('/no_picture', (req, res) => {
+    const filePath = path.join(__dirname, './public/no_pic.jpg')
+    res.sendFile(filePath)
+})
+
 app.post('/new_pfp', upload.single('image'), (req, res) => {
     try{
         const pfp_src = req.file.filename
@@ -182,6 +194,35 @@ app.post('/new_pfp', upload.single('image'), (req, res) => {
     }   
     res.send()
 
+})
+
+app.get('/request_owner_data', (req, res) =>{
+    const data_promise = db.get_account_data(req.session.user.username)
+    data_promise.then(user_data => {
+        console.log('Recieved from db: ')
+        console.log(`user: ${user_data.username}`)
+        console.log(`bio: ${user_data.bio}`)
+        console.log(`pfp: ${user_data.pfp}`)
+        console.log(`posts: ${user_data.posts}`)
+
+        app.get('/' + user_data.pfp, (req,res) => {
+            const filePath = path.join(__dirname, `./uploads/${user_data.pfp}`)
+            console.log(`uploading pfp at ${filePath}`)
+            res.sendFile(filePath)
+        })
+
+        user_data.posts.forEach(post => {
+            console.log('NIGGAAAA')
+            app.get('/' + post.src, (req,res) => {
+                const filePath = path.join(__dirname, `./uploads/${post.src}`)
+                console.log(`uploading post at ${filePath}`)
+                res.sendFile(filePath)
+            })
+        })  
+    
+        res.send(JSON.stringify(user_data))
+    })
+    
 })
 //testing
 

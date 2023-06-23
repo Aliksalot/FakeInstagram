@@ -1,4 +1,5 @@
 
+const { response } = require('express');
 const { MongoClient, ConnectionClosedEvent } = require('mongodb');
 
 const url = 'mongodb+srv://alexkolev05:1234@eentai.ou01tyv.mongodb.net/?retryWrites=true&w=majority'; // Replace with the MongoDB connection URI
@@ -119,6 +120,33 @@ const update_pfp = async(pfp_src, username) => {
     }
 }
 
+const get_account_data = async(username) => {
+
+    await client.connect()
+
+    try{
+        const db = client.db(db_name)
+        const find = {username: username}    
+        
+        const user_data = db.collection(users)
+        const user_info = await user_data.findOne(find)
+
+        const posts_data = db.collection(posts)
+        const user_posts = await posts_data.find(find).toArray()
+
+        let to_return = user_info
+        to_return.posts = user_posts
+        to_return.password = ''
+
+        return new Promise((resolve, reject) => {
+            resolve(to_return)
+        })
+    
+        
+    }catch(e){
+        
+    }
+}
 module.exports = {
     check_user_avaliable,
     add_new_account,
@@ -126,5 +154,6 @@ module.exports = {
     new_post,
     update_bio,
     update_pfp,
+    get_account_data,
     clear
 }

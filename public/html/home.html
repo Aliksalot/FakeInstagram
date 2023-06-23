@@ -9,21 +9,22 @@
           width: 480px; /* Set the desired width */
           height: 100%; /* Set the desired height */
         }
-        #posts img{
+        .post_image{
             position: relative;
             width: 420px;
+            max-width: 420px;
             height: 220px;
+            max-height: 220px;
             left: 20px;
             right: 20px;
-            top: 100px;
-            margin-top: 50px;
+            margin-top: 100px;
         }
         .description{
             position: relative;
             top: 90px;
             left: 25px;
             width: 210px;
-            height: 100PX;
+            height: 100px;
             margin-top: 10px;
             overflow: auto;
             word-wrap: break-word;
@@ -36,9 +37,17 @@
             width: 100px;
             height: 40px;
         }
+
+        .post_header{
+            position: relative;
+            margin-bottom: 5px;
+            top: 150px;
+            left: 20px
+        }
       </style>
 </head>
-<body>
+
+<body onload= "onload()">
 
     <div id = 'bio'>
         <h1 id = 'username' style = 'font-size: 25px;text-align: center;'>HALLO</h1>
@@ -49,31 +58,39 @@
     </div>
     
     <div id = 'posts' style = 'display:contents;'>
-        <img
+
+        <!-- <div id = 'post_id' >
+            <div class = 'post_header'>Username: Date</div>
+            <img
+            class = 'post_image'
             src = '/temp_pfp'
-        >
-        <div class="description">I LOVE KIDSSSSSSS
-            asddASDAS
-            ASDASDASDA
-            ASDAS
-        </div>
-        <img
-        src = '/temp_pfp'
-        >
-        <div class="description">I LOVE KIDSSSSSSS</div>
-        <img
-        src = '/temp_pfp'
-        >
-        <div class="description">I LOVE KIDSSSSSSS</div>
-        <img
-        src = '/temp_pfp'
-        >
-        <div class="description">I LOVE KIDSSSSSSS</div>
+            >
+            <div class="description">I LOVE KIDSSSSSSS
+                asddASDAS
+                ASDASDASDA
+                ASDAS
+            </div>
+            
+        </div> 
+
+        <div id = 'post_id' >
+            <div class = 'post_header'>Username: Date</div>
+            <img
+            class = 'post_image'
+            src = '/temp_pfp'
+            >
+            <div class="description">I LOVE KIDSSSSSSS
+                asddASDAS
+                ASDASDASDA
+                ASDAS
+            </div>
+            
+        </div> -->
+
     </div>
 
-    <div id = 'options'>
+    <div id = 'options' style = 'display: none'>
 
-   
         <button id = 'new_post_btn' class = 'options_button' style = 'position: relative; margin-top: 130px;'onclick = 'promt_new_post(); closeFields("new_post")'>New post</button>
         <button id = "change_bio_btn" class = 'options_button' onclick = 'promt_new_bio(); closeFields("change_bio")'>Edit bio</button>
         <button id = 'change_pfp_btn' class = 'options_button' onclick = 'promt_new_pfp(); closeFields("change_pfp")'>Change pfp</button>
@@ -133,6 +150,8 @@
         }
 
     </script>
+
+    <script src = 'onload.js'></script>
     <script src = 'new_pfp.js'></script>
     <script src = 'new_bio.js'></script>
     <script src = 'new_post.js'></script>
