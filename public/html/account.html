@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel = 'stylesheet' href = '/header.css'>
+
+</head>
+<body onload = 'innit()' id = 'main_body' style = 'display:none'>
+
+    <div id = 'bio'>
+        <h1 id = 'username' style = 'font-size: 25px;text-align: center;'>HALLO</h1>
+        <img style = 'width: 100px; height: 120px; position: absolute; top: 50px; left: 20px;' id = 'profile_picture' src = '/temp_pfp'>
+        <button id = 'follow_btn' style = 'width: 60px; height: 50px; position: absolute; top: 50px; left: 420px' onclick = 'follow()'>follow</button>
+        <button id = 'home_btn' onclick = 'redirHome()' style = 'width: 60px; height: 50px; position: absolute; top: 110px; left: 420px'>home</button>
+        <div id = 'description' style = 'position: absolute; left: 140px; top: 60px; height: 100px; width: 260px; overflow: auto; word-wrap: break-word;'></div>
+    </div>
+
+    <div id = 'posts'></div>
+    <script>
+        const redirHome = () => {
+            window.location.href = '/home'
+        }
+    </script>
+
+    <script src = '/request/innit'></script>
+</body>
+</html>

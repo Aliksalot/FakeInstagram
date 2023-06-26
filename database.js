@@ -16,7 +16,10 @@ const add_new_account = async(user) => {
     try{
         const db = client.db(db_name)
         const collection = db.collection(users)
-    
+        
+        user.followers = []
+        user.following = []
+
         collection.insertOne(user)        
     }catch(e){
         console.log(e)
@@ -147,6 +150,31 @@ const get_account_data = async(username) => {
         
     }
 }
+
+const new_follow = async(to_follow, follower) => {
+    await client.connect()
+    try{
+        const db = client.db(db_name)
+
+        const users = db.collection(users)
+
+        const to_be_followed = await users.findOne({username: to_follow})
+        const to_be_following = await users.findOne({username: follower})
+
+        let new_followers_list = to_be_followed.followers
+        new_followers_list.push(follower)
+
+        let new_following_list = to_be_following.following
+        new_following_list.push(to_follow)
+
+        users.updateOne({username: follower}, {$set: {following: new_following_list}})
+        users.updateOne({username: following}, {$set: {followers: new_followers_list}})
+
+    }catch(e){
+        console.log(`Issue with inserting new follower ${e}`)
+    }
+}
+
 module.exports = {
     check_user_avaliable,
     add_new_account,
@@ -155,5 +183,6 @@ module.exports = {
     update_bio,
     update_pfp,
     get_account_data,
+    new_follow,
     clear
 }

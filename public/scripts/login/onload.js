@@ -55,7 +55,12 @@ const onload = () => {
                 post_div.appendChild(description)
 
                 posts_box.appendChild(post_div)
+
             });
+            
+            console.log('home page loaded')
+            const client_body = document.getElementById('main_body')
+            client_body.style.display = 'block'            
             
             
         }

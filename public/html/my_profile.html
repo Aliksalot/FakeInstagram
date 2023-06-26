@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=480, initial-scale=1.0">
+    <title>FakeInsta</title>
+    <link rel="stylesheet" href="/header.css">
+</head>
+
+<body id = 'main_body' style = 'display: none' onload= "onload()" >
+
+    <div id = 'bio'>
+        <h1 id = 'username' style = 'font-size: 25px;text-align: center;'>HALLO</h1>
+        <img style = 'width: 100px; height: 120px; position: absolute; top: 50px; left: 20px;' id = 'profile_picture' src = '/temp_pfp'>
+        <button id = 'options_btn' style = 'width: 60px; height: 50px; position: absolute; top: 50px; left: 420px' onclick = 'show_options()'>options</button>
+        <button id = 'home_btn' onclick = 'redirHome()' style = 'width: 60px; height: 50px; position: absolute; top: 110px; left: 420px'>home</button>
+        <div id = 'description' style = 'position: absolute; left: 140px; top: 60px; height: 100px; width: 260px; overflow: auto; word-wrap: break-word;'></div>
+    </div>
+    
+    <div id = 'posts' style = 'display:contents;'>
+
+        <!-- <div id = 'post_id' >
+            <div class = 'post_header'>Username: Date</div>
+            <img
+            class = 'post_image'
+            src = '/temp_pfp'
+            >
+            <div class="description">I LOVE KIDSSSSSSS
+                asddASDAS
+                ASDASDASDA
+                ASDAS
+            </div>
+            
+        </div> 
+
+        <div id = 'post_id' >
+            <div class = 'post_header'>Username: Date</div>
+            <img
+            class = 'post_image'
+            src = '/temp_pfp'
+            >
+            <div class="description">I LOVE KIDSSSSSSS
+                asddASDAS
+                ASDASDASDA
+                ASDAS
+            </div>
+            
+        </div> -->
+
+    </div>
+
+    <div id = 'options' style = 'display: none'>
+
+        <button id = 'new_post_btn' class = 'options_button' style = 'position: relative; margin-top: 130px;'onclick = 'promt_new_post(); closeFields("new_post")'>New post</button>
+        <button id = "change_bio_btn" class = 'options_button' onclick = 'promt_new_bio(); closeFields("change_bio")'>Edit bio</button>
+        <button id = 'change_pfp_btn' class = 'options_button' onclick = 'promt_new_pfp(); closeFields("change_pfp")'>Change pfp</button>
+        <button id = 'logout' class = 'options_button' onclick = 'logout()'>Logout</button>
+        <!--upload-->
+        <div id = 'new_post' style = 'display: none; white-space: pre-line;'>
+
+            <input type="file" name="image" id="imageInput" oninput="on_image_upload()" style = 'position: relative; left: 20px;margin-top: 5px;'>
+
+            <img id = 'imagePreview' style = 'display: none;position: relative;margin-top: 10px; left: 20px; height: 220px; width: 420px;'>
+
+            <input type='text' onkeydown = 'checkEnter(event, try_upload)' id = 'description_input' style = 'position: relative; left: 60px; margin-top: 10px; width: 320px; height: 80px;'>
+            
+            <button id = 'upload_post' style = 'position: relative; left: 20px; margin-top: 10px; width: 100px; height: 40px;' onclick="try_upload()">Upload</button>
+
+        </div>
+
+        <!--delete-->
+
+        <!--change bio-->
+
+        <div id = 'change_bio' style = 'display:none; white-space:pre-line'>
+            <input type = 'text' id = 'input_new_bio' onkeydown = 'checkEnter(event,try_new_bio)' style = 'position: relative; left: 60px; margin-top: 10px; width: 320px; height: 80px;'>
+            <button id = 'save_new_bio' onclick = 'try_new_bio()' style = 'position: relative; left: 20px; margin-top: 10px; width: 100px; height: 40px;'>Save</button>
+        </div>
+
+        <!--change pfp-->
+
+        <div id = 'change_pfp' style = 'display:none; white-space: pre-line;'>
+            <input type="file" name="image" id="pfpInput" oninput="preview_pfp()" style = 'position: relative; left: 20px;margin-top: 20px;'>
+            <img id = 'pfp_preview' style = 'width: 100px; height: 120px; position: relative; margin-top: 20px; left: 20px; display: none;'>
+            <button id = 'save_new_pfp' onclick = 'try_pfp_upload()' style = 'position: relative; left: 20px; margin-top: 10px; width: 100px; height: 40px;'>Save</button>
+        </div>
+
+        <!--change pass-->
+
+        
+
+        <!--follow someone-->
+
+
+    </div>
+    <script>
+
+        const checkEnter = (event, func) => {
+            if(event === 'Enter')
+                func()
+        }
+
+        const closeFields = (except) => {
+            const fields = [/*'change_pass'*/, 'change_pfp', /*'follow_new'*/, 'change_bio', /*'delete_post'*/, 'new_post']
+            fields.forEach(field => {
+                if(!(field === except)){
+                    const field_div = document.getElementById(field)
+                    field_div.style.display = 'none'    
+                }
+                
+            });
+        }
+
+        const redirHome = () => {
+            window.location.href = '/home'
+        }
+
+
+    </script>
+    <script src = 'logout.js'></script>
+    <script src = 'onload.js'></script>
+    <script src = 'new_pfp.js'></script>
+    <script src = 'new_bio.js'></script>
+    <script src = 'new_post.js'></script>
+    <script src = 'show_options.js'></script>
+</body>
+</html>

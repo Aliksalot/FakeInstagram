@@ -14,6 +14,9 @@ app.use(express.json())
 app.use(express.static(path.join(__dirname, './public/scripts/login')))
 app.use(express.static(path.join(__dirname, './public/scripts/image_upload')))
 app.use(express.static(path.join(__dirname, './public/scripts/options')))
+//app.use(express.static(path.join(__dirname, './public/scripts/other_profile')))
+app.use(express.static(path.join(__dirname, './public/scripts/home_page')))
+app.use(express.static(path.join(__dirname, './public/css')))
 const upload = multer({dest : 'uploads/'})
 
 app.use(session({
@@ -103,6 +106,11 @@ app.post('/login_attempt', (req, res) =>{
     
 })
 
+app.post('/logout', (req, res) => {
+    req.session.user = undefined
+    res.send()
+})
+
 app.get('/login', (req, res) => {
     const filePath = path.join(__dirname, './public/html/login.html')
     res.sendFile(filePath)
@@ -114,9 +122,15 @@ app.get('/register', (req,res) => {
 })
 
 
-//HOME PAGE
-app.get('/home', (req, res) => {
-    const filePath = path.join(__dirname, './public/html/home.html')
+//MY PROFILE PAGE
+app.get('/header.css', (req, res) => {
+    const filePath = path.join(__dirname, './public/css/header.css');
+    res.sendFile(filePath)
+})
+
+
+app.get('/my_profile', (req, res) => {
+    const filePath = path.join(__dirname, './public/html/my_profile.html')
     res.sendFile(filePath)
 });
 
@@ -127,7 +141,7 @@ app.post('/new_post', upload.single('image'), (req, res) => {
         const description = req.body.description
         const likes = 0
         const username = req.session.user.username
-        if(image_src === undefined || description === undefined || username === undefined)
+        if(image_src === undefined || description === undefined || username === undefined || description === '')
             res.send()
         const post = {date: date, src: image_src, description: description, likes: likes, username: username}
         
@@ -135,36 +149,13 @@ app.post('/new_post', upload.single('image'), (req, res) => {
 
     }catch(e){
         console.log('Something is undefind in request for new post')
+        res.send()
     }
 
     res.send()
     
 })
-/*
-app.post('/load_image', (req, res) => {
-    const imagePromise = db.get_image()
-    imagePromise.then(img => {
-        app.get('/' + img.src, (req, res) => {
-            const imgPath = path.join(__dirname, './uploads/' + img.src)
-            res.sendFile(imgPath)
-        })
-        res.send(img.src)
-    })
-})
-*/
-/*
-app.post('/load_pfp', (req,res) => {
-    try{
-        const pfp_src = req.body.src
-        app.get('/' + src, (req,res) => {
-            const filePath = path.join(__dirname, `./uploads/${pfp_src}`)
-            res.sendFile(filePath)
-        })
-        res.send()
-    }catch(e){
-        console.log('error when loading pfp')
-    }
-})*/
+
 app.post('/new_bio', (req, res) => { 
     try{
         const bio = req.body.bio
@@ -199,6 +190,7 @@ app.post('/new_pfp', upload.single('image'), (req, res) => {
 app.get('/request_owner_data', (req, res) =>{
     const data_promise = db.get_account_data(req.session.user.username)
     data_promise.then(user_data => {
+
         console.log('Recieved from db: ')
         console.log(`user: ${user_data.username}`)
         console.log(`bio: ${user_data.bio}`)
@@ -207,15 +199,14 @@ app.get('/request_owner_data', (req, res) =>{
 
         app.get('/' + user_data.pfp, (req,res) => {
             const filePath = path.join(__dirname, `./uploads/${user_data.pfp}`)
-            console.log(`uploading pfp at ${filePath}`)
+            console.log(`uploading pfp at ${user_data.pfp}`)
             res.sendFile(filePath)
         })
 
         user_data.posts.forEach(post => {
-            console.log('NIGGAAAA')
             app.get('/' + post.src, (req,res) => {
                 const filePath = path.join(__dirname, `./uploads/${post.src}`)
-                console.log(`uploading post at ${filePath}`)
+                console.log(`uploading post at ${post.src}`)
                 res.sendFile(filePath)
             })
         })  
@@ -224,6 +215,105 @@ app.get('/request_owner_data', (req, res) =>{
     })
     
 })
+//account_page
+
+
+app.get('/request/innit', (req,res) => {
+    const filePath = path.join(__dirname, './public/scripts/other_profile/innit.js')
+    res.sendFile(filePath)
+})
+
+app.get('/account/:account_name', (req, res) => {
+    const account_name = req.params.account_name
+    db.check_user_avaliable(account_name).then(isAvalibale => {
+        if(isAvalibale){
+            console.log(`Account ${account_name} doesn't exist`)
+            res.send(`Account doesn't exist! `)
+        }else{
+            if(account_name === req.session.user.username){
+                res.redirect('/my_profile')
+                return
+            }
+
+            const filePath = path.join(__dirname, './public/html/account.html')
+            console.log(`Loaded page of ${account_name}`)
+            res.sendFile(filePath)        
+        }
+    })
+})
+
+app.post('/request/data/:account_name', (req, res) => {
+    const username = req.params.account_name
+    
+    console.log(`request for user data from ${username}`)
+    
+    db.check_user_avaliable(username).then(isAvalibale => {
+        if(isAvalibale){
+            console.log(`Account ${username} doesn't exist`)
+            res.send(false)
+        }else{
+
+            try{
+                console.log(`Starting to upload to client for user ${username}`)
+                const account_data_promise = db.get_account_data(username)
+                account_data_promise.then(user => {
+                    console.log(`Attempt to get ${username} data: ${user}`)
+                    console.log(`Profile pic path ${'/' + user.pfp}`)
+                    app.get('/data/' + user.pfp, (req, res) => {
+                        const pfpPath = path.join(__dirname, `./uploads/${user.pfp}`)
+                        console.log(`Uploaded ${username}'s profile picture at ${'/' + user.pfp}`)
+                        res.sendFile(pfpPath)
+                    })
+                    const posts = user.posts
+                    posts.forEach(post => {
+                        app.get('/data/' + post.src, (req,res) => {
+                            const filePath = path.join(__dirname, `./uploads/${post.src}`)
+                            console.log(`Uploaded ${username}'s post at ${post.src}`)
+                            res.sendFile(filePath)
+                        })
+                    })
+                    res.send(JSON.stringify(user))
+                })
+            }catch(e){
+                console.log(`Account with name ${username} is undefined`)
+                res.send(false)
+            }
+
+        }
+    })
+
+    
+})
+
+
+//HOME PAGE
+app.get('/home', (req, res) => {
+    const filePath = path.join(__dirname, './public/html/home.html')
+    res.sendFile(filePath)
+});
+
+app.post('/redirect_to_user', (req, res) => {
+    const username = req.body.username
+    const user_exist_promise = db.check_user_avaliable(username)
+    user_exist_promise.then(isAvalibale => {
+        const exists = !isAvalibale
+        console.log(`Response from server when seaching for ${username}: ${exists}`)
+        if(exists){
+            res.send(true)
+        }else{
+            res.send(false)
+        }
+    })
+})
+
+app.post('/request/follow', (req, res) => {
+    
+    const to_follow = req.body.to_follow
+    const follower = req.session.user.username
+
+    
+})
+
 //testing
 
 app.get('/temp_pfp', (req,res) => {

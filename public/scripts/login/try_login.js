@@ -36,7 +36,7 @@ const try_login = () => {
                 clearFields()
             }else{
                 resultOutputField.textContent = output_messages.loginSuccess
-                window.location.href = '/home'
+                window.location.href = '/my_profile'
             }
                 
             
