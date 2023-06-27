@@ -1,7 +1,7 @@
-body, html {
-    width: 480px; /* Set the desired width */
-    height: 100%; /* Set the desired height */
-  }
+    body, html {
+        width: 480px; /* Set the desired width */
+        height: 100%; /* Set the desired height */
+    }
   .post_image{
       position: relative;
       width: 420px;

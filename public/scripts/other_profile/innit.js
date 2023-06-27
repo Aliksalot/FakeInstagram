@@ -56,9 +56,21 @@ const innit = () => {
                 posts_box.appendChild(post_div)
             })
 
+            const follow_btn = document.getElementById('follow_btn')
+            
+            if(data.is_followed){
+                follow_btn.textContent = 'Unfollow'
+                follow_btn.onclick = unfollow
+            }else{
+                follow_btn.textContent = 'Follow'
+                follow_btn.onclick = follow
+            }
+
+            console.log("DATA IS FOLLOWED", data.is_followed)
+
             console.log('account page loaded')
             const client_body = document.getElementById('main_body')
-            client_body.style.display = 'block'    
+            client_body.style.display = 'block'
 
         }
         

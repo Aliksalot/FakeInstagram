@@ -2,13 +2,17 @@
 const home_onload = () => { 
     
     const xhr = new XMLHttpRequest()
-    xhr.open('POST', '/get_following_posts')
+    xhr.open('POST', '/request/all_following_posts')
     xhr.setRequestHeader('Content-Type', 'application/json')
 
     xhr.onload = () => {
         if(xhr.status === 200){
             const posts = JSON.parse(xhr.responseText)
-            
+
+            if(!posts) return
+
+            console.log(posts)
+
             const posts_box = document.getElementById('posts')
 
             const post_img_style = 'position: relative;top: 100px;width: 420px;max-width: 420px;height: 220px;max-height: 220px;left: 20px;margin-top: 100px;'
@@ -21,11 +25,12 @@ const home_onload = () => {
                 
                 const post_header = document.createElement('div')
                 post_header.style = post_header_style
-                post_header.textContent = user_data.username + " - " + new Date(post.date).toLocaleDateString('en-US');
+                post_header.textContent = post.username + " - " + new Date(post.date).toLocaleDateString('en-US');
 
                 const post_image = document.createElement('img')
                 post_image.style = post_img_style
                 post_image.src = post.src
+                console.log(post_image.src)
 
                 const description = document.createElement('div')
                 description.style = description_style

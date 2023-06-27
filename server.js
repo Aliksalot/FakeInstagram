@@ -272,7 +272,13 @@ app.post('/request/data/:account_name', (req, res) => {
                             res.sendFile(filePath)
                         })
                     })
-                    res.send(JSON.stringify(user))
+                    
+                    db.is_following(req.session.user.username, username).then(isFollowing => {
+                        user.is_followed = isFollowing
+                        res.send(JSON.stringify(user))    
+                    })
+
+                    
                 })
             }catch(e){
                 console.log(`Account with name ${username} is undefined`)
@@ -283,6 +289,31 @@ app.post('/request/data/:account_name', (req, res) => {
     })
 
     
+})
+
+app.get('/request/follow_script', (req, res) => {
+    const filePath = path.join(__dirname, './public/scripts/other_profile/follow.js')
+    res.sendFile(filePath)
+})
+
+
+app.post('/request/unfollow', (req, res) => {
+
+    const to_unfollow = req.body.to_unfollow
+    const follower = req.session.user.username
+
+    db.unfollow(follower, to_unfollow)
+    res.send()
+})
+
+app.post('/request/follow', (req, res) => {
+    
+    const to_follow = req.body.to_follow
+    const follower = req.session.user.username
+
+    db.new_follow(to_follow, follower)
+    
+    res.send('Success')
 })
 
 
@@ -306,13 +337,28 @@ app.post('/redirect_to_user', (req, res) => {
     })
 })
 
-app.post('/request/follow', (req, res) => {
+app.post('/request/all_following_posts', (req,res) => {
+    const username = req.session.user.username
     
-    const to_follow = req.body.to_follow
-    const follower = req.session.user.username
+    console.log(`client request: all posts on following for user ${username}`)
 
+    db.get_posts_following(username).then(posts => {
+
+        posts.reverse()
+        posts.forEach(post => {
+            app.get('/' + post.src, (req, res) => {
+                const filePath = path.join(__dirname, `./uploads/${post.src}`)
+                console.log(`uploading post at ${post.src}`)
+                res.sendFile(filePath)
+            })
+        })
+
+        res.send(posts)
+    })
     
 })
+
+
 
 //testing
 

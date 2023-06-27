@@ -4,7 +4,7 @@ const { MongoClient, ConnectionClosedEvent } = require('mongodb');
 
 const url = 'mongodb+srv://alexkolev05:1234@eentai.ou01tyv.mongodb.net/?retryWrites=true&w=majority'; // Replace with the MongoDB connection URI
 const client = new MongoClient(url);
-const db_name = 'demo' 
+const db_name = 'theostrici' 
 
 //collections for different purposes
 const users = 'users'
@@ -27,13 +27,7 @@ const add_new_account = async(user) => {
     
 }
 
-const clear = async() => {
-    await client.connect()
-    const db = client.db(db_name)
-    const collection = db.collection(uploads)
 
-    await collection.deleteMany()
-}
 
 const check_user_avaliable = async(username) => {
 
@@ -151,28 +145,140 @@ const get_account_data = async(username) => {
     }
 }
 
+const unfollow = async(follower, to_unfollow) => {
+    await client.connect()
+    try{
+        const db = client.db(db_name)
+
+        const users_data = db.collection(users)
+
+        const to_be_unfollowed = await users_data.findOne({username: to_unfollow})
+        const remove_following = await users_data.findOne({username: follower})
+
+        const new_followers_list = to_be_unfollowed.followers.filter((user) => user !== follower)
+        
+        const new_following_list = remove_following.following.filter((user) => user !== to_unfollow)
+
+        users_data.updateOne({username: follower}, {$set: {following: new_following_list}})
+        users_data.updateOne({username: to_unfollow}, {$set: {followers: new_followers_list}})
+
+        console.log('Succesfully unfollowed')
+
+    }catch(e){
+        console.log(`Issue with unfollowing ${e}`)
+    }    
+}
+
+const is_following = async(user, following) => {
+    await client.connect()
+    try{
+        const db = client.db(db_name)
+        
+        const collection = db.collection(users)
+
+        const user_account = await collection.findOne({username: user})
+        
+        console.log(`Got from db when checking for following: ${user_account}`)
+
+        const isFollowing = user_account.following.includes(following)
+
+        return new Promise((resolve, reject) => resolve(isFollowing))
+            
+    }catch(e){
+        console.log(`error when checking does user ${user} follow user ${following}: ${e}`)
+    }
+}
+
 const new_follow = async(to_follow, follower) => {
     await client.connect()
     try{
         const db = client.db(db_name)
 
-        const users = db.collection(users)
+        const users_data = db.collection(users)
 
-        const to_be_followed = await users.findOne({username: to_follow})
-        const to_be_following = await users.findOne({username: follower})
+        const to_be_followed = await users_data.findOne({username: to_follow})
+        const to_be_following = await users_data.findOne({username: follower})
 
         let new_followers_list = to_be_followed.followers
-        new_followers_list.push(follower)
+        if(!new_followers_list.includes(follower))
+            new_followers_list.push(follower)
 
         let new_following_list = to_be_following.following
-        new_following_list.push(to_follow)
+        if(!new_following_list.includes(to_follow))
+            new_following_list.push(to_follow)
 
-        users.updateOne({username: follower}, {$set: {following: new_following_list}})
-        users.updateOne({username: following}, {$set: {followers: new_followers_list}})
+        users_data.updateOne({username: follower}, {$set: {following: new_following_list}})
+        users_data.updateOne({username: to_follow}, {$set: {followers: new_followers_list}})
+
+        console.log('New follower succesfully inserted! ')
 
     }catch(e){
         console.log(`Issue with inserting new follower ${e}`)
     }
+}
+//debug
+const clear = async() => {
+    await client.connect()
+    const db = client.db(db_name)
+    const collection = db.collection(posts)
+
+    await collection.deleteMany()
+}
+
+const add_arrays = async() => {
+    await client.connect()
+    const db = client.db(db_name)
+
+    const collection = db.collection(users)
+    
+    const _users = await collection.find().toArray()
+    _users.forEach(async(user) => {
+        const username = user.username
+    
+        await collection.updateOne({username: username}, {$set: {followers: []}})
+        await collection.updateOne({username: username}, {$set: {following: []}})
+        
+    });
+
+}
+
+//get all the posts in the last 10 days of all the people user is following
+const get_posts_following = async(user) => {
+
+    await client.connect()
+    
+    return new Promise(async(resolve, reject) => {
+        const db = client.db(db_name)
+
+        const users_data = db.collection(users)
+
+        const posts_data = db.collection(posts)
+        try{
+            const user_following = await users_data.findOne({username: user})
+        
+            console.log(`Followeing for ${user}: ${user_following.following}`)
+        
+            const number_of_days = 10
+            const days_to_milli = 24 * 3600 * 1000
+
+            const days_ago = new Date().getTime() - number_of_days * days_to_milli
+
+            const all_posts = await posts_data.find({username: {$in: user_following.following}}).toArray()
+            
+            all_posts.forEach( post => {
+                console.log(post)
+            })
+
+            console.log(`Number of posts to return: ${all_posts.length}`)
+            resolve(all_posts)
+            
+        }catch(e){
+            console.log(`Error when retrieving all posts of following users: ${e}`)
+            reject(e)
+        }
+        
+    })
+
 }
 
 module.exports = {
@@ -184,5 +290,9 @@ module.exports = {
     update_pfp,
     get_account_data,
     new_follow,
+    unfollow,
+    is_following,
+    get_posts_following,
+    add_arrays,
     clear
 }
