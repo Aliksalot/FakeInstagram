@@ -4,7 +4,7 @@ const { MongoClient, ConnectionClosedEvent } = require('mongodb');
 
 const url = 'mongodb+srv://alexkolev05:1234@eentai.ou01tyv.mongodb.net/?retryWrites=true&w=majority'; // Replace with the MongoDB connection URI
 const client = new MongoClient(url);
-const db_name = 'theostrici' 
+const db_name = 'demo' 
 
 //collections for different purposes
 const users = 'users'
@@ -229,14 +229,17 @@ const add_arrays = async() => {
     await client.connect()
     const db = client.db(db_name)
 
-    const collection = db.collection(users)
+    const collection = db.collection(posts)
     
-    const _users = await collection.find().toArray()
-    _users.forEach(async(user) => {
-        const username = user.username
+    const _posts = await collection.find().toArray()
+
+    console.log(`number of posts: ${_posts.length}`)
+
+    _posts.forEach(async(post) => {
+        const post_src = post.src
     
-        await collection.updateOne({username: username}, {$set: {followers: []}})
-        await collection.updateOne({username: username}, {$set: {following: []}})
+        await collection.updateOne({src: post_src}, {$set: {likes: []}})
+        
         
     });
 
@@ -281,6 +284,38 @@ const get_posts_following = async(user) => {
 
 }
 
+const like_post = async(post_src, liker) => {
+
+    await client.connect()
+    
+        const db = client.db(db_name)
+
+        const _posts = db.collection(posts)
+        console.log(`ON DB: when liking post.src: ${post_src}, liker ${liker}`)
+
+        post_src = post_src.split('/').pop()
+        
+        return new Promise(async(resolve, reject) => {
+            try{
+
+                const response = await _posts.findOne({src: post_src})
+                console.log(`From db when liking: ${response.likes}`)
+                    if(!response.likes.includes(liker)){
+                        response.likes.push(liker)
+                        await _posts.updateOne({src: post_src}, {$set: {likes: response.likes}})
+                        resolve('liked')
+                    }else{
+                        response.likes = response.likes.filter((user) => user !== liker)
+                        await _posts.updateOne({src: post_src}, {$set: {likes: response.likes}})
+                        resolve('unliked')
+                    }
+       
+            }catch(e) {
+                console.log(`Problem when liking post on db ${e}`)
+            }
+    })
+}
+
 module.exports = {
     check_user_avaliable,
     add_new_account,
@@ -294,5 +329,6 @@ module.exports = {
     is_following,
     get_posts_following,
     add_arrays,
+    like_post,
     clear
 }

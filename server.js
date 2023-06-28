@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path')
 const port = 3000;
+const ip = '192.168.1.9'
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const db = require('./database.js')
@@ -14,24 +15,32 @@ app.use(express.json())
 app.use(express.static(path.join(__dirname, './public/scripts/login')))
 app.use(express.static(path.join(__dirname, './public/scripts/image_upload')))
 app.use(express.static(path.join(__dirname, './public/scripts/options')))
-//app.use(express.static(path.join(__dirname, './public/scripts/other_profile')))
+app.use(express.static(path.join(__dirname, './public/scripts/posts')))
 app.use(express.static(path.join(__dirname, './public/scripts/home_page')))
 app.use(express.static(path.join(__dirname, './public/css')))
 const upload = multer({dest : 'uploads/'})
 
 app.use(session({
-    secret: "3Hb5&k#A8q!vWzR1N7XeLyUoTf@JjIp6dZ*s%SOxYQ-gD0aVGt9nFhMl$cK2B4uEv+CwP=Ii?r~",
+    secret: [...Array(32)].map(() => Math.random().toString(36)[2]).join(''),
     resave: false,
     saveUninitialized: false
-  }));
+}));
+
+
 
 app.use(auth.authenticateUser)
 
 const is_valid_pass_or_user = (arg) =>{
+    return is_sanitized(arg) && arg.length < 20 && arg.length > 4
+}
+
+const is_sanitized = (arg) => {
+
     const regex = /[^a-zA-Z0-9]/;
 
-    return !regex.test(arg)
+    return !regex.test(arg) && arg != undefined && arg != '' 
 }
+
 
 const encryptPassword = async(password) => {
     console.log("password to encrpt: ", password)
@@ -137,14 +146,16 @@ app.get('/my_profile', (req, res) => {
 app.post('/new_post', upload.single('image'), (req, res) => {
     try{
         const date = Date.now()
-        const image_src = req.file.filename
+        const image = req.file
         const description = req.body.description
-        const likes = 0
+        const likes = []
         const username = req.session.user.username
-        if(image_src === undefined || description === undefined || username === undefined || description === '')
+        if(!(is_sanitized(image.filename) && is_sanitized(description) && is_sanitized(username))){
             res.send()
-        const post = {date: date, src: image_src, description: description, likes: likes, username: username}
-        
+            return
+        }
+        const post = {date: date, src: image.filename, description: description, likes: likes, username: username}
+        console.log(`Uploading new post for user ${username}`)
         db.new_post(post)
 
     }catch(e){
@@ -160,7 +171,11 @@ app.post('/new_bio', (req, res) => {
     try{
         const bio = req.body.bio
         const username = req.session.user.username
-        
+        if(!is_sanitized(bio) || !is_sanitized(username)){
+            res.send()
+            return
+        }
+            
         db.update_bio(bio, username)
     }catch(e){
         console('Problem with inserting new bio. Maybe undefined?')
@@ -176,10 +191,10 @@ app.get('/no_picture', (req, res) => {
 
 app.post('/new_pfp', upload.single('image'), (req, res) => {
     try{
-        const pfp_src = req.file.filename
+        const pfp = req.file
         const username = req.session.user.username
 
-        db.update_pfp(pfp_src, username)
+        db.update_pfp(pfp.filename, username)
     }catch(e){
         console.log("Soemthing is undefined when submitting new pfp")
     }   
@@ -204,6 +219,9 @@ app.get('/request_owner_data', (req, res) =>{
         })
 
         user_data.posts.forEach(post => {
+
+            post.is_liked = post.likes.includes(user_data.username)
+
             app.get('/' + post.src, (req,res) => {
                 const filePath = path.join(__dirname, `./uploads/${post.src}`)
                 console.log(`uploading post at ${post.src}`)
@@ -218,13 +236,34 @@ app.get('/request_owner_data', (req, res) =>{
 //account_page
 
 
+app.get('/request/like', (req, res) => {
+    const filePath = path.join(__dirname, './public/scripts/posts/like.js')
+    res.sendFile(filePath)
+})
+
+app.get('/request/post_as_element', (req, res) => {
+    const filePath = path.join(__dirname, './public/scripts/posts/post_as_element.js')
+    res.sendFile(filePath)
+})
+
 app.get('/request/innit', (req,res) => {
     const filePath = path.join(__dirname, './public/scripts/other_profile/innit.js')
     res.sendFile(filePath)
 })
 
+app.get('/request/follow_script', (req, res) => {
+    const filePath = path.join(__dirname, './public/scripts/other_profile/follow.js')
+    res.sendFile(filePath)
+})
+
 app.get('/account/:account_name', (req, res) => {
     const account_name = req.params.account_name
+
+    if(!is_sanitized(account_name)){
+        res.send()
+        return
+    }
+
     db.check_user_avaliable(account_name).then(isAvalibale => {
         if(isAvalibale){
             console.log(`Account ${account_name} doesn't exist`)
@@ -244,6 +283,11 @@ app.get('/account/:account_name', (req, res) => {
 
 app.post('/request/data/:account_name', (req, res) => {
     const username = req.params.account_name
+
+    if(!is_sanitized(username)){
+        res.send()
+        return
+    }
     
     console.log(`request for user data from ${username}`)
     
@@ -266,11 +310,20 @@ app.post('/request/data/:account_name', (req, res) => {
                     })
                     const posts = user.posts
                     posts.forEach(post => {
-                        app.get('/data/' + post.src, (req,res) => {
-                            const filePath = path.join(__dirname, `./uploads/${post.src}`)
-                            console.log(`Uploaded ${username}'s post at ${post.src}`)
+
+                        post.is_liked = post.likes.includes(req.session.user.username)
+
+                        const post_route = `/data/${post.src}`
+                        const post_src = post.src
+                        post.src = post_route
+                        console.log(`ROUTE FOR POST ${post_route}`)
+
+                        app.get(post_route, (req,res) => {
+                            const filePath = path.join(__dirname, `./uploads/${post_src}`)
+                            console.log(`Uploaded ${username}'s post at ${post_route}`)
                             res.sendFile(filePath)
                         })
+                        
                     })
                     
                     db.is_following(req.session.user.username, username).then(isFollowing => {
@@ -291,29 +344,44 @@ app.post('/request/data/:account_name', (req, res) => {
     
 })
 
-app.get('/request/follow_script', (req, res) => {
-    const filePath = path.join(__dirname, './public/scripts/other_profile/follow.js')
-    res.sendFile(filePath)
-})
-
 
 app.post('/request/unfollow', (req, res) => {
 
-    const to_unfollow = req.body.to_unfollow
-    const follower = req.session.user.username
-
-    db.unfollow(follower, to_unfollow)
-    res.send()
+    try{
+        const to_unfollow = req.body.to_unfollow
+        const follower = req.session.user.username
+    
+        if(!is_sanitized(to_unfollow)){
+            res.send()
+            return
+        }
+    
+        db.unfollow(follower, to_unfollow)
+        res.send()
+    }catch(e){
+        console.log('Problem with unfollowing', follower, to_unfollow, e)
+    }
+    
 })
 
 app.post('/request/follow', (req, res) => {
     
-    const to_follow = req.body.to_follow
-    const follower = req.session.user.username
 
-    db.new_follow(to_follow, follower)
-    
-    res.send('Success')
+    try{
+        const to_follow = req.body.to_follow
+        const follower = req.session.user.username
+
+        if(!is_sanitized(to_follow)){
+            res.send()
+            return
+        }
+
+        db.new_follow(to_follow, follower)
+        
+        res.send('Success')
+    }catch(e){
+        console.log('Problem with following', to_follow, follower, e)
+    }  
 })
 
 
@@ -323,8 +391,30 @@ app.get('/home', (req, res) => {
     res.sendFile(filePath)
 });
 
+app.post('/request/like_post', (req,res) => {
+    console.log(`Recieved request for liking post`)
+    try{
+        const post = req.body
+        db.like_post(post.src, req.session.user.username).then(status => res.send({status: status}))
+        
+    }catch(e){
+        console.log(`error with liking post ${post.src}`, e)
+    }
+})
+
 app.post('/redirect_to_user', (req, res) => {
     const username = req.body.username
+    try{
+        if(!is_sanitized(username)){
+            res.send()
+            return
+        }
+    }catch(e){
+        console.log('problem with redirecting')
+        res.send()
+        return
+    }
+    
     const user_exist_promise = db.check_user_avaliable(username)
     user_exist_promise.then(isAvalibale => {
         const exists = !isAvalibale
@@ -345,7 +435,11 @@ app.post('/request/all_following_posts', (req,res) => {
     db.get_posts_following(username).then(posts => {
 
         posts.reverse()
+
         posts.forEach(post => {
+
+            post.is_liked = post.likes.includes(username)
+
             app.get('/' + post.src, (req, res) => {
                 const filePath = path.join(__dirname, `./uploads/${post.src}`)
                 console.log(`uploading post at ${post.src}`)
@@ -366,6 +460,6 @@ app.get('/temp_pfp', (req,res) => {
     res.sendFile(path.join(__dirname, './uploads/pfp.jpg'))
 })
 
-app.listen(port, () => {
+app.listen(port, ip, () => {
   console.log(`Server listening on port ${port}`);
 });
