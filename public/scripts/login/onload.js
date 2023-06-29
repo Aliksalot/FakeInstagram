@@ -16,9 +16,16 @@ const onload = () => {
             const username_box = document.getElementById('username')
             username_box.textContent = user_data.username
 
+            const following_box = document.getElementById('following')
+            following_box.textContent += user_data.following.length
+            following_box.onclick = () => show_following(user_data.username)
+
+            const follower_box = document.getElementById('followers')
+            follower_box.textContent += user_data.followers.length
+            follower_box.onclick = () => show_followers(user_data.username)
+
             const pfp_box = document.getElementById('profile_picture')
             pfp_box.src = user_data.pfp === undefined ? '/no_picture' : user_data.pfp
-
             console.log(`pfp_src ${pfp_box.src}`)
 
             const bio = document.getElementById('description')
@@ -34,10 +41,8 @@ const onload = () => {
             });
             
             console.log('home page loaded')
-            const client_body = document.getElementById('main_body')
-            client_body.style.display = 'block'            
-            
-            
+            document.body.style.display = 'block'            
+               
         }
 
     }

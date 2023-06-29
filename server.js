@@ -2,7 +2,7 @@
 const express = require('express');
 const path = require('path')
 const port = 3000;
-//const ip = '192.168.178.115'
+const ip = `192.168.1.9`
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const db = require('./database.js')
@@ -38,7 +38,7 @@ const is_valid_pass_or_user = (arg) =>{
 
 const is_sanitized = (arg) => {
 
-    const regex = /[^a-zA-Z0-9]/;
+    const regex = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 
     return !regex.test(arg) && arg != undefined && arg != '' 
 }
@@ -191,6 +191,11 @@ app.get('/no_picture', (req, res) => {
     res.sendFile(filePath)
 })
 
+app.get('/close_button', (req, res) => {
+    const filePath = path.join(__dirname, './public/close_button.png')
+    res.sendFile(filePath)
+})
+
 app.post('/new_pfp', upload.single('image'), (req, res) => {
     try{
         const pfp = req.file
@@ -237,6 +242,21 @@ app.get('/request_owner_data', (req, res) =>{
 })
 //account_page
 
+
+app.get('/request/show_followers', (req, res) => {
+    const filePath = path.join(__dirname, './public/scripts/options/show_followers.js')
+    res.sendFile(filePath)
+})
+
+app.get('/request/show_following', (req, res) => {
+    const filePath = path.join(__dirname, './public/scripts/options/show_following.js')
+    res.sendFile(filePath)
+})
+
+app.get('/request/show_liked', (req, res) => {
+    const filePath = path.join(__dirname, './public/scripts/posts/show_liked.js')
+    res.sendFile(filePath)
+})
 
 app.get('/request/like', (req, res) => {
     const filePath = path.join(__dirname, './public/scripts/posts/like.js')
@@ -307,7 +327,6 @@ app.post('/request/data/:account_name', (req, res) => {
                     console.log(`Profile pic path ${'/' + user.pfp}`)
                     app.get('/data/' + user.pfp, (req, res) => {
                         const pfpPath = path.join(__dirname, `./uploads/${user.pfp}`)
-                        console.log(`Uploaded ${username}'s profile picture at ${'/' + user.pfp}`)
                         res.sendFile(pfpPath)
                     })
                     const posts = user.posts
@@ -322,7 +341,6 @@ app.post('/request/data/:account_name', (req, res) => {
 
                         app.get(post_route, (req,res) => {
                             const filePath = path.join(__dirname, `./uploads/${post_src}`)
-                            console.log(`Uploaded ${username}'s post at ${post_route}`)
                             res.sendFile(filePath)
                         })
                         
@@ -444,9 +462,9 @@ app.post('/request/all_following_posts', (req,res) => {
 
             app.get('/' + post.src, (req, res) => {
                 const filePath = path.join(__dirname, `./uploads/${post.src}`)
-                console.log(`uploading post at ${post.src}`)
                 res.sendFile(filePath)
             })
+
         })
 
         res.send(posts)
@@ -454,6 +472,86 @@ app.post('/request/all_following_posts', (req,res) => {
     
 })
 
+app.post('/request/followers', async (req, res) => {
+    try{
+        const username = req.body.username
+
+        if(!is_sanitized(username)){
+            res.send(undefined)
+            return
+        }
+        console.log('request for all followers')
+        db.get_followers(username).then(followers => {
+
+            followers.forEach(user => {
+                app.get(`/data/${user.pfp}`, (req, res) => {
+                    const pfpFile = path.join(__dirname, `./uploads/${user.pfp}`)   
+
+                    
+                    res.sendFile(pfpFile)
+                })
+
+            })
+
+            res.send(followers)
+        })
+        
+    }catch(e){
+        console.log(`Issue when requesting followers ${e}`)
+    }
+    
+})
+
+app.post('/request/following', (req, res) => {
+    try{
+        const username = req.body.username
+
+        if(!is_sanitized(username)){
+            res.send(undefined)
+            return
+        }
+        
+        db.get_following(username).then(following => {
+            following.forEach(user => {
+                app.get(`/data/${user.pfp}`, (req, res) => {
+                    const pfpFile = path.join(__dirname, `./uploads/${user.pfp}`)   
+                    
+                    res.sendFile(pfpFile)
+                })
+
+            })
+
+            res.send(following)
+        })
+
+    }catch(e){
+        console.log(`Issue when requesting followers ${e}`)
+    }
+    
+})
+
+app.post('/request/all_likers', (req, res) => {
+    try{
+        const post_src = req.body.src.includes('/data/') ? req.body.src.split('/').pop(): req.body.src
+        
+        db.get_all_likers(post_src).then(likers => {
+
+            likers.forEach(user => {
+                app.get(`/data/${user.pfp}`, (req, res) => {
+                    const pfpFile = path.join(__dirname, `./uploads/${user.pfp}`)   
+                    
+                    res.sendFile(pfpFile)
+                })
+
+            })
+
+            res.send(likers)
+        })
+
+    }catch(e){
+        console.log(`error with request for all likers ${req.body.src}, ${e}`)
+    }
+})
 
 
 //testing
@@ -461,6 +559,6 @@ app.get('/temp_pfp', (req,res) => {
     res.sendFile(path.join(__dirname, './uploads/pfp.jpg'))
 })
 
-app.listen(port /*, ip*/, () => {
+app.listen(port , ip, () => {
   console.log(`Server listening on port ${port}`);
 });

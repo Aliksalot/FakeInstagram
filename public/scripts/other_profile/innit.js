@@ -16,6 +16,18 @@ const innit = () => {
             const username_box = document.getElementById('username')
             username_box.textContent = data.username
 
+            const following_box = document.getElementById('following')
+            following_box.textContent += data.following.length
+            following_box.onclick = () => {
+                show_following(data.username)
+            }
+
+            const follower_box = document.getElementById('followers')
+            follower_box.textContent += data.followers.length
+            follower_box.onclick = () => {
+                show_followers(data.username)
+            }
+
             const pfp_box = document.getElementById('profile_picture')
             pfp_box.src = data.pfp === undefined ? '/no_picture' : '/data/' + data.pfp
 
