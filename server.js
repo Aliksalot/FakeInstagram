@@ -1,7 +1,8 @@
+
 const express = require('express');
 const path = require('path')
 const port = 3000;
-const ip = '192.168.1.9'
+//const ip = '192.168.178.115'
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const db = require('./database.js')
@@ -18,6 +19,7 @@ app.use(express.static(path.join(__dirname, './public/scripts/options')))
 app.use(express.static(path.join(__dirname, './public/scripts/posts')))
 app.use(express.static(path.join(__dirname, './public/scripts/home_page')))
 app.use(express.static(path.join(__dirname, './public/css')))
+
 const upload = multer({dest : 'uploads/'})
 
 app.use(session({
@@ -455,11 +457,10 @@ app.post('/request/all_following_posts', (req,res) => {
 
 
 //testing
-
 app.get('/temp_pfp', (req,res) => {
     res.sendFile(path.join(__dirname, './uploads/pfp.jpg'))
 })
 
-app.listen(port, ip, () => {
+app.listen(port /*, ip*/, () => {
   console.log(`Server listening on port ${port}`);
 });

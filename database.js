@@ -1,5 +1,4 @@
 
-const { response } = require('express');
 const { MongoClient, ConnectionClosedEvent } = require('mongodb');
 
 const url = 'mongodb+srv://alexkolev05:1234@eentai.ou01tyv.mongodb.net/?retryWrites=true&w=majority'; // Replace with the MongoDB connection URI
