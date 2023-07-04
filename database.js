@@ -1,10 +1,9 @@
 
-const { response } = require('express');
 const { MongoClient, ConnectionClosedEvent } = require('mongodb');
 
 const url = 'mongodb+srv://alexkolev05:1234@eentai.ou01tyv.mongodb.net/?retryWrites=true&w=majority'; // Replace with the MongoDB connection URI
 const client = new MongoClient(url);
-const db_name = 'theostrici' 
+const db_name = 'demo' 
 
 //collections for different purposes
 const users = 'users'
@@ -229,14 +228,17 @@ const add_arrays = async() => {
     await client.connect()
     const db = client.db(db_name)
 
-    const collection = db.collection(users)
+    const collection = db.collection(posts)
     
-    const _users = await collection.find().toArray()
-    _users.forEach(async(user) => {
-        const username = user.username
+    const _posts = await collection.find().toArray()
+
+    console.log(`number of posts: ${_posts.length}`)
+
+    _posts.forEach(async(post) => {
+        const post_src = post.src
     
-        await collection.updateOne({username: username}, {$set: {followers: []}})
-        await collection.updateOne({username: username}, {$set: {following: []}})
+        await collection.updateOne({src: post_src}, {$set: {likes: []}})
+        
         
     });
 
@@ -264,10 +266,6 @@ const get_posts_following = async(user) => {
             const days_ago = new Date().getTime() - number_of_days * days_to_milli
 
             const all_posts = await posts_data.find({username: {$in: user_following.following}}).toArray()
-            
-            all_posts.forEach( post => {
-                console.log(post)
-            })
 
             console.log(`Number of posts to return: ${all_posts.length}`)
             resolve(all_posts)
@@ -278,6 +276,119 @@ const get_posts_following = async(user) => {
         }
         
     })
+
+}
+
+const get_followers = async(username) => {
+    await client.connect()
+    return new Promise(async(resolve, reject) => {
+        try{
+            const db = client.db(db_name)
+
+            const _users = db.collection(users)
+
+            await _users.findOne({username: username}, {projection: {followers: 1, following: 1}}).then(async user => {
+                const followers = user.followers
+
+                const pairs = await _users.find({username: {$in: followers}}, {projection : {username: 1, pfp: 1, _id: 0}}).toArray()
+                
+                resolve(pairs)
+            })
+
+        }catch(e){
+            reject(e)
+        }
+    })
+}
+
+const get_following = async(username) => {
+    await client.connect()
+    return new Promise(async(resolve, reject) => {
+        try{
+            const db = client.db(db_name)
+
+            const _users = db.collection(users)
+
+            await _users.findOne({username: username}, {projection: {followers: 1, following: 1}}).then(async user => {
+
+                const following = user.following
+
+                const pairs = await _users.find({username: {$in: following}}, {projection : {username: 1, pfp: 1, _id: 0}}).toArray()
+                
+                resolve(pairs)
+            })
+
+        }catch(e){
+            reject(e)
+        }
+    })
+}
+
+const like_post = async(post_src, liker) => {
+
+    await client.connect()
+    
+        const db = client.db(db_name)
+
+        const _posts = db.collection(posts)
+        console.log(`ON DB: when liking post.src: ${post_src}, liker ${liker}`)
+
+        post_src = post_src.split('/').pop()
+        
+        return new Promise(async(resolve, reject) => {
+            try{
+
+                const response = await _posts.findOne({src: post_src})
+                console.log(`From db when liking: ${response.likes}`)
+                    if(!response.likes.includes(liker)){
+                        response.likes.push(liker)
+                        await _posts.updateOne({src: post_src}, {$set: {likes: response.likes}})
+                        resolve('liked')
+                    }else{
+                        response.likes = response.likes.filter((user) => user !== liker)
+                        await _posts.updateOne({src: post_src}, {$set: {likes: response.likes}})
+                        resolve('unliked')
+                    }
+       
+            }catch(e) {
+                console.log(`Problem when liking post on db ${e}`)
+            }
+    })
+}
+
+const get_all_likers = async(post_src) => {
+
+    await client.connect()
+
+    try{
+        return new Promise(async(resolve, reject) => {
+
+            const db = client.db(db_name)
+
+            const _posts = db.collection(posts)
+
+            const _users = db.collection(users)
+
+            const post = await _posts.findOne({src: post_src}).then(async post => {
+                try{
+                    const likers = post.likes
+                    const all_likers_data = await _users.find({username : {$in: likers}}, {projection: {pfp: 1, username: 1, _id: 0}}).toArray()
+                
+                    //debug
+                    all_likers_data.forEach(user => {
+                        console.log(`pfp: ${user.pfp}, username: ${user.username}`)
+                    })
+
+                    resolve(all_likers_data)    
+                }catch(e){
+                    resolve(false)
+                }
+            })
+        })
+        
+    }catch(e){
+        console.log('DB: error when getting all likers for post ', post_src)
+    }
 
 }
 
@@ -294,5 +405,9 @@ module.exports = {
     is_following,
     get_posts_following,
     add_arrays,
+    like_post,
+    get_all_likers,
+    get_followers,
+    get_following,
     clear
 }

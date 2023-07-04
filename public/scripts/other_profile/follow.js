@@ -11,6 +11,7 @@ const follow = () => {
             const follow_btn = document.getElementById('follow_btn')
             follow_btn.textContent = 'unfollow'
             follow_btn.onclick = unfollow
+            location.reload()
         }
     }
 

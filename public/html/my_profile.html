@@ -11,47 +11,19 @@
 
     <div id = 'bio'>
         <h1 id = 'username' style = 'font-size: 25px;text-align: center;'>HALLO</h1>
-        <img style = 'width: 100px; height: 120px; position: absolute; top: 50px; left: 20px;' id = 'profile_picture' src = '/temp_pfp'>
-        <button id = 'options_btn' style = 'width: 60px; height: 50px; position: absolute; top: 50px; left: 420px' onclick = 'show_options()'>options</button>
-        <button id = 'home_btn' onclick = 'redirHome()' style = 'width: 60px; height: 50px; position: absolute; top: 110px; left: 420px'>home</button>
+        <img style = 'width: 100px; height: 120px; position: absolute; top: 50px; left: 20px;' id = 'profile_picture'>
+        <button id = 'home_btn' onclick = 'redirHome()' style = 'width: 60px; height: 50px; position: absolute; top: 50px; left: 420px'>home</button>
+        <button id = 'options_btn' style = 'width: 60px; height: 50px; position: absolute; top: 110px; left: 420px' onclick = 'show_options()'>options</button>
         <div id = 'description' style = 'position: absolute; left: 140px; top: 60px; height: 100px; width: 260px; overflow: auto; word-wrap: break-word;'></div>
+        <button id = 'followers' style = 'position:absolute; top: 180px; left: 20px; word-wrap: break-word; max-width: 80px;'>Followers: </button>
+        <button id = 'following' style = 'position:absolute; top: 180px; left: 110px; word-wrap: break-word; max-width: 80px;'>Following: </button>
     </div>
     
-    <div id = 'posts' style = 'display:contents;'>
-
-        <!-- <div id = 'post_id' >
-            <div class = 'post_header'>Username: Date</div>
-            <img
-            class = 'post_image'
-            src = '/temp_pfp'
-            >
-            <div class="description">I LOVE KIDSSSSSSS
-                asddASDAS
-                ASDASDASDA
-                ASDAS
-            </div>
-            
-        </div> 
-
-        <div id = 'post_id' >
-            <div class = 'post_header'>Username: Date</div>
-            <img
-            class = 'post_image'
-            src = '/temp_pfp'
-            >
-            <div class="description">I LOVE KIDSSSSSSS
-                asddASDAS
-                ASDASDASDA
-                ASDAS
-            </div>
-            
-        </div> -->
-
-    </div>
+    <div id = 'posts' style = 'display:contents;'></div>
 
     <div id = 'options' style = 'display: none'>
 
-        <button id = 'new_post_btn' class = 'options_button' style = 'position: relative; margin-top: 130px;'onclick = 'promt_new_post(); closeFields("new_post")'>New post</button>
+        <button id = 'new_post_btn' class = 'options_button' style = 'position: relative; margin-top: 170px;'onclick = 'promt_new_post(); closeFields("new_post")'>New post</button>
         <button id = "change_bio_btn" class = 'options_button' onclick = 'promt_new_bio(); closeFields("change_bio")'>Edit bio</button>
         <button id = 'change_pfp_btn' class = 'options_button' onclick = 'promt_new_pfp(); closeFields("change_pfp")'>Change pfp</button>
         <button id = 'logout' class = 'options_button' onclick = 'logout()'>Logout</button>
@@ -123,5 +95,10 @@
     <script src = 'new_bio.js'></script>
     <script src = 'new_post.js'></script>
     <script src = 'show_options.js'></script>
+    <script src = 'post_as_element.js'></script>
+    <script src = 'like.js'></script>
+    <script src = 'show_liked.js'></script>
+    <script src = 'show_followers.js'></script>
+    <script src = 'show_following.js'></script>
 </body>
 </html>

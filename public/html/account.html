@@ -16,6 +16,8 @@
         <button id = 'follow_btn' style = 'width: 60px; height: 50px; position: absolute; top: 50px; left: 420px' onclick = 'follow()'>follow</button>
         <button id = 'home_btn' onclick = 'redirHome()' style = 'width: 60px; height: 50px; position: absolute; top: 110px; left: 420px'>home</button>
         <div id = 'description' style = 'position: absolute; left: 140px; top: 60px; height: 100px; width: 260px; overflow: auto; word-wrap: break-word;'></div>
+        <button id = 'followers' style = 'position:absolute; top: 180px; left: 20px; word-wrap: break-word; max-width: 80px;'>Followers: </button>
+        <button id = 'following' style = 'position:absolute; top: 180px; left: 110px; word-wrap: break-word; max-width: 80px;'>Following: </button>
     </div>
 
     <div id = 'posts'></div>
@@ -25,7 +27,12 @@
         }
     </script>
 
-    <script src = '/request/follow_script'></script>
+    <script src = '/request/post_as_element'></script>
+    <script src = '/request/like'></script>
     <script src = '/request/innit'></script>
+    <script src = '/request/follow_script'></script>
+    <script src = '/request/show_liked'></script>
+    <script src = '/request/show_followers'></script>
+    <script src = '/request/show_following'></script>
 </body>
 </html>
